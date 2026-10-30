@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chérie & Co. | Ropa Juvenil y Coquette</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        coquette: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            200: '#fbcfe8',
+                            300: '#f9a8d4',
+                            400: '#f472b6',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            800: '#9d174d',
+                            900: '#831843',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Transiciones suaves para el cambio de página */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .page-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Toast notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #fff;
+            color: #831843;
+            text-align: center;
+            border-radius: 9999px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #fbcfe8;
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s, visibility 0.5s;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+    </style>
+</head>
+<body class="bg-coquette-50 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Navegación -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-coquette-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="navigateTo('home')">
+                    <i class="ph ph-bow text-coquette-500 text-3xl mr-2"></i>
+                    <span class="font-serif font-bold text-2xl text-coquette-900 tracking-wide">Chérie & Co.</span>
+                </div>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex space-x-8 items-center">
+                    <a href="#" onclick="navigateTo('home')" class="nav-link text-gray-600 hover:text-coquette-600 font-medium transition-colors">Inicio</a>
+                    <a href="#" onclick="navigateTo('shop')" class="nav-link text-gray-600 hover:text-coquette-600 font-medium transition-colors">Catálogo</a>
+                    <a href="#" onclick="navigateTo('about')" class="nav-link text-gray-600 hover:text-coquette-600 font-medium transition-colors">Nosotros</a>
+                    <a href="#" onclick="navigateTo('contact')" class="nav-link text-gray-600 hover:text-coquette-600 font-medium transition-colors">Contacto</a>
+                    <button onclick="navigateTo('cart')" class="relative p-2 text-gray-600 hover:text-coquette-600 transition-colors">
+                        <i class="ph ph-shopping-bag text-2xl"></i>
+                        <span id="cart-badge" class="absolute top-0 right-0 bg-coquette-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center transform translate-x-1 -translate-y-1 opacity-0 transition-opacity">0</span>
+                    </button>
+                </nav>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button onclick="navigateTo('cart')" class="relative p-2 mr-4 text-gray-600 hover:text-coquette-600 transition-colors">
+                        <i class="ph ph-shopping-bag text-2xl"></i>
+                        <span id="mobile-cart-badge" class="absolute top-0 right-0 bg-coquette-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center transform translate-x-1 -translate-y-1 opacity-0 transition-opacity">0</span>
+                    </button>
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-coquette-600 focus:outline-none">
+                        <i class="ph ph-list text-3xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-coquette-100">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 shadow-lg">
+                <a href="#" onclick="navigateTo('home'); closeMobileMenu()" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-coquette-600 hover:bg-coquette-50 rounded-md">Inicio</a>
+                <a href="#" onclick="navigateTo('shop'); closeMobileMenu()" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-coquette-600 hover:bg-coquette-50 rounded-md">Catálogo</a>
+                <a href="#" onclick="navigateTo('about'); closeMobileMenu()" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-coquette-600 hover:bg-coquette-50 rounded-md">Nosotros</a>
+                <a href="#" onclick="navigateTo('contact'); closeMobileMenu()" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-coquette-600 hover:bg-coquette-50 rounded-md">Contacto</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        
+        <!-- PÁGINA 1: INICIO -->
+        <section id="home" class="page-section active">
+            <!-- Hero Section -->
+            <div class="relative bg-white overflow-hidden">
+                <div class="max-w-6xl mx-auto">
+                    <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+                        <svg class="hidden lg:block absolute right-0 inset-y-0 h-full w-48 text-white transform translate-x-1/2" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                            <polygon points="50,0 100,0 50,100 0,100" />
+                        </svg>
+                        <div class="pt-10 mx-auto max-w-7xl px-4 sm:pt-12 sm:px-6 md:pt-16 lg:pt-20 lg:px-8 xl:pt-28">
+                            <div class="sm:text-center lg:text-left">
+                                <span class="text-coquette-500 font-semibold tracking-wide uppercase text-sm mb-2 block">Nueva Colección Romántica</span>
+                                <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl font-serif">
+                                    <span class="block text-coquette-900">Elegancia juvenil</span>
+                                    <span class="block text-coquette-400 italic font-light">con un toque de magia</span>
+                                </h1>
+                                <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                                    Descubre prendas delicadas, lazos de seda, encajes sutiles y tonos pastel que resaltan tu feminidad. Moda coquette para almas soñadoras.
+                                </p>
+                                <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                                    <div class="rounded-full shadow">
+                                        <button onclick="navigateTo('shop')" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-coquette-500 hover:bg-coquette-600 md:py-4 md:text-lg transition-all shadow-md hover:shadow-lg">
+                                            Ver Colección
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+                    <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full opacity-90" src="https://placehold.co/800x600/fce7f3/db2777?text=Chérie+Aesthetic" alt="Chica con vestido rosa estilo coquette">
+                </div>
+            </div>
+
+            <!-- Featured Categories -->
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-serif font-bold text-coquette-900">Nuestros Favoritos</h2>
+                    <p class="mt-2 text-gray-500">Piezas esenciales para tu armario romántico</p>
+                    <div class="w-24 h-1 bg-coquette-300 mx-auto mt-4 rounded-full"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Featured 1 -->
+                    <div class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-coquette-100 group">
+                        <img src="https://placehold.co/400x500/fbcfe8/831843?text=Vestidos" alt="Vestidos" class="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="p-6 text-center">
+                            <h3 class="font-serif text-xl font-semibold text-coquette-900">Vestidos de Ensueño</h3>
+                            <button onclick="navigateTo('shop')" class="mt-3 text-coquette-500 font-medium hover:text-coquette-700 flex items-center justify-center w-full">
+                                Descubrir <i class="ph ph-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Featured 2 -->
+                    <div class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-coquette-100 group">
+                        <img src="https://placehold.co/400x500/fdf2f8/831843?text=Lazos+y+Accesorios" alt="Accesorios" class="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="p-6 text-center">
+                            <h3 class="font-serif text-xl font-semibold text-coquette-900">Lazos y Accesorios</h3>
+                            <button onclick="navigateTo('shop')" class="mt-3 text-coquette-500 font-medium hover:text-coquette-700 flex items-center justify-center w-full">
+                                Descubrir <i class="ph ph-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Featured 3 -->
+                    <div class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-coquette-100 group">
+                        <img src="https://placehold.co/400x500/fff1f2/831843?text=Blusas+de+Encaje" alt="Blusas" class="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="p-6 text-center">
+                            <h3 class="font-serif text-xl font-semibold text-coquette-900">Blusas de Encaje</h3>
+                            <button onclick="navigateTo('shop')" class="mt-3 text-coquette-500 font-medium hover:text-coquette-700 flex items-center justify-center w-full">
+                                Descubrir <i class="ph ph-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA 2: CATÁLOGO -->
+        <section id="shop" class="page-section bg-coquette-50 py-12">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-10">
+                    <h2 class="text-4xl font-serif font-bold text-coquette-900 mb-4">Catálogo Completo</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">Seleccionamos cada pieza pensando en realzar tu dulzura y elegancia natural.</p>
+                </div>
+                
+                <!-- Filtros (Visuales) -->
+                <div class="flex flex-wrap justify-center gap-4 mb-10">
+                    <button class="px-5 py-2 rounded-full bg-white border border-coquette-300 text-coquette-800 hover:bg-coquette-100 transition-colors">Todos</button>
+                    <button class="px-5 py-2 rounded-full bg-transparent border border-coquette-300 text-gray-600 hover:bg-coquette-100 transition-colors">Vestidos</button>
+                    <button class="px-5 py-2 rounded-full bg-transparent border border-coquette-300 text-gray-600 hover:bg-coquette-100 transition-colors">Tops & Corsés</button>
+                    <button class="px-5 py-2 rounded-full bg-transparent border border-coquette-300 text-gray-600 hover:bg-coquette-100 transition-colors">Faldas</button>
+                </div>
+
+                <!-- Grid de Productos -->
+                <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Los productos se inyectan con JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA 3: NOSOTROS -->
+        <section id="about" class="page-section py-16 bg-white">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row items-center gap-12">
+                    <div class="md:w-1/2">
+                        <div class="relative">
+                            <img src="https://placehold.co/600x700/fce7f3/9d174d?text=Nuestra+Esencia" alt="Nuestra Esencia" class="rounded-[2rem] shadow-xl relative z-10">
+                            <div class="absolute -bottom-6 -right-6 w-full h-full border-2 border-coquette-300 rounded-[2rem] z-0"></div>
+                            <!-- Decoración -->
+                            <i class="ph ph-sparkle text-5xl text-coquette-400 absolute -top-4 -left-4 z-20 animate-pulse"></i>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2">
+                        <h2 class="text-sm font-bold text-coquette-500 uppercase tracking-widest mb-2">Nuestra Historia</h2>
+                        <h3 class="text-4xl font-serif font-bold text-coquette-900 mb-6">Celebrando la feminidad en cada detalle</h3>
+                        <p class="text-gray-600 mb-4 leading-relaxed">
+                            En <strong class="text-coquette-800">Chérie & Co.</strong>, creemos que la ropa es una extensión del alma. Nacimos de la pasión por el romanticismo, la época victoriana adaptada a la modernidad y la estética "coquette".
+                        </p>
+                        <p class="text-gray-600 mb-6 leading-relaxed">
+                            Nuestra misión es ofrecer prendas que te hagan sentir como la protagonista de tu propia novela. Lazos de satén, encajes delicados, perlas y paletas apasteladas son nuestro lenguaje para expresar elegancia juvenil.
+                        </p>
+                        <div class="grid grid-cols-2 gap-4 mt-8">
+                            <div class="bg-coquette-50 p-4 rounded-2xl text-center">
+                                <i class="ph ph-heart text-3xl text-coquette-500 mb-2"></i>
+                                <h4 class="font-bold text-coquette-900">Diseño Único</h4>
+                                <p class="text-sm text-gray-500">Inspiración vintage</p>
+                            </div>
+                            <div class="bg-coquette-50 p-4 rounded-2xl text-center">
+                                <i class="ph ph-flower-tulip text-3xl text-coquette-500 mb-2"></i>
+                                <h4 class="font-bold text-coquette-900">Detalles</h4>
+                                <p class="text-sm text-gray-500">Hecho con amor</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA 4: CONTACTO -->
+        <section id="contact" class="page-section py-16 bg-coquette-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-[2rem] shadow-lg overflow-hidden flex flex-col md:flex-row">
+                    <!-- Info -->
+                    <div class="md:w-2/5 bg-coquette-900 text-white p-10 flex flex-col justify-between relative overflow-hidden">
+                        <!-- Fondo decorativo -->
+                        <div class="absolute -bottom-10 -right-10 opacity-10">
+                            <i class="ph-fill ph-bow" style="font-size: 200px;"></i>
+                        </div>
+                        
+                        <div class="relative z-10">
+                            <h3 class="text-2xl font-serif font-bold mb-2">Hablemos</h3>
+                            <p class="text-coquette-200 text-sm mb-8">¿Tienes dudas sobre tallas o envíos? Escríbenos, estaremos encantadas de ayudarte.</p>
+                            
+                            <div class="space-y-6">
+                                <div class="flex items-center">
+                                    <i class="ph ph-envelope-simple text-2xl text-coquette-300 mr-4"></i>
+                                    <span>hola@cherieco.com</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="ph ph-phone text-2xl text-coquette-300 mr-4"></i>
+                                    <span>+34 600 123 456</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="ph ph-map-pin text-2xl text-coquette-300 mr-4"></i>
+                                    <span>Av. de las Rosas 123, Madrid</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-12 flex space-x-4 relative z-10">
+                            <a href="#" class="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"><i class="ph ph-instagram-logo text-xl"></i></a>
+                            <a href="#" class="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"><i class="ph ph-tiktok-logo text-xl"></i></a>
+                            <a href="#" class="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"><i class="ph ph-pinterest-logo text-xl"></i></a>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulario -->
+                    <div class="md:w-3/5 p-10">
+                        <h3 class="text-2xl font-serif font-bold text-gray-800 mb-6">Envíanos un mensaje</h3>
+                        <form onsubmit="handleContactSubmit(event)" class="space-y-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
+                                <input type="text" id="name" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-coquette-500 focus:border-coquette-500 bg-gray-50">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                                <input type="email" id="email" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-coquette-500 focus:border-coquette-500 bg-gray-50">
+                            </div>
+                            <div>
+                                <label for="message" class="block text-sm font-medium text-gray-700">Mensaje</label>
+                                <textarea id="message" rows="4" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-coquette-500 focus:border-coquette-500 bg-gray-50 resize-none"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-coquette-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-coquette-600 transition-colors shadow-md mt-4">
+                                Enviar Mensaje <i class="ph ph-paper-plane-tilt ml-2"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA 5: CARRITO -->
+        <section id="cart" class="page-section py-12 bg-white min-h-[60vh]">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-serif font-bold text-coquette-900 mb-8 flex items-center">
+                    <i class="ph ph-shopping-bag mr-3 text-coquette-500"></i> Tu Bolsa de Compras
+                </h2>
+                
+                <div id="cart-container" class="bg-white rounded-2xl shadow-sm border border-coquette-100 overflow-hidden">
+                    <!-- Cart items will be rendered here by JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-coquette-200 pt-12 pb-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-center md:text-left">
+                <div>
+                    <div class="flex items-center justify-center md:justify-start mb-4">
+                        <i class="ph ph-bow text-coquette-500 text-2xl mr-2"></i>
+                        <span class="font-serif font-bold text-xl text-coquette-900">Chérie & Co.</span>
+                    </div>
+                    <p class="text-gray-500 text-sm max-w-xs mx-auto md:mx-0">
+                        Ropa juvenil inspirada en el romance, los detalles delicados y la estética coquette.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-4">Enlaces Rápidos</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" onclick="navigateTo('home')" class="hover:text-coquette-500">Inicio</a></li>
+                        <li><a href="#" onclick="navigateTo('shop')" class="hover:text-coquette-500">Catálogo</a></li>
+                        <li><a href="#" onclick="navigateTo('about')" class="hover:text-coquette-500">Nuestra Esencia</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-4">Políticas</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-coquette-500">Envíos y Devoluciones</a></li>
+                        <li><a href="#" class="hover:text-coquette-500">Guía de Tallas</a></li>
+                        <li><a href="#" class="hover:text-coquette-500">Términos y Condiciones</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm text-gray-400">&copy; 2023 Chérie & Co. Todos los derechos reservados.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0 text-gray-400">
+                    <i class="ph ph-credit-card text-2xl"></i>
+                    <i class="ph ph-paypal-logo text-2xl"></i>
+                    <i class="ph ph-apple-podcasts-logo text-2xl"></i> <!-- Simulating Apple Pay icon -->
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notificación Toast -->
+    <div id="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Lógica JavaScript -->
+    <script>
+        // --- Navegación SPA (Single Page Application) ---
+        function navigateTo(pageId) {
+            // Ocultar todas las páginas
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar la página solicitada
+            document.getElementById(pageId).classList.add('active');
+            
+            // Si vamos al carrito, re-renderizarlo
+            if(pageId === 'cart') {
+                renderCart();
+            }
+
+            // Scroll al top
+            window.scrollTo(0,0);
+        }
+
+        // --- Menú Móvil ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        function closeMobileMenu() {
+            mobileMenu.classList.add('hidden');
+        }
+
+        // --- Datos de Productos ---
+        const products = [
+            {
+                id: 1,
+                name: "Vestido Satén 'Julieta'",
+                price: 45.99,
+                image: "https://placehold.co/400x500/fce7f3/db2777?text=Vestido+Sat%C3%A9n",
+                category: "Vestidos"
+            },
+            {
+                id: 2,
+                name: "Corsé Perlado Floral",
+                price: 34.50,
+                image: "https://placehold.co/400x500/fbcfe8/db2777?text=Cors%C3%A9+Floral",
+                category: "Tops"
+            },
+            {
+                id: 3,
+                name: "Falda Plisada 'Coquette'",
+                price: 29.99,
+                image: "https://placehold.co/400x500/fdf2f8/db2777?text=Falda+Plisada",
+                category: "Faldas"
+            },
+            {
+                id: 4,
+                name: "Blusa de Encaje Blanco",
+                price: 32.00,
+                image: "https://placehold.co/400x500/fff1f2/db2777?text=Blusa+Encaje",
+                category: "Tops"
+            },
+            {
+                id: 5,
+                name: "Cardigan con Lazos",
+                price: 38.99,
+                image: "https://placehold.co/400x500/fce7f3/db2777?text=Cardigan+Lazos",
+                category: "Abrigos"
+            },
+            {
+                id: 6,
+                name: "Mini Vestido de Tirantes",
+                price: 42.00,
+                image: "https://placehold.co/400x500/fbcfe8/db2777?text=Mini+Vestido",
+                category: "Vestidos"
+            },
+            {
+                id: 7,
+                name: "Top Mangas Abullonadas",
+                price: 26.50,
+                image: "https://placehold.co/400x500/fdf2f8/db2777?text=Top+Abullonado",
+                category: "Tops"
+            },
+            {
+                id: 8,
+                name: "Set de 3 Lazos de Pelo",
+                price: 12.99,
+                image: "https://placehold.co/400x500/fff1f2/db2777?text=Lazos+Cabello",
+                category: "Accesorios"
+            }
+        ];
+
+        // --- Renderizar Productos en el Catálogo ---
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-coquette-50 group flex flex-col";
+                card.innerHTML = `
+                    <div class="relative overflow-hidden">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-500">
+                        <button onclick="addToCart(${product.id})" class="absolute bottom-4 right-4 bg-white/90 backdrop-blur text-coquette-500 p-3 rounded-full shadow-md hover:bg-coquette-500 hover:text-white transition-colors">
+                            <i class="ph ph-shopping-cart-simple text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="p-5 flex-grow flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-coquette-400 uppercase tracking-wider">${product.category}</span>
+                            <h3 class="font-serif font-semibold text-gray-800 text-lg mt-1">${product.name}</h3>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between">
+                            <span class="font-bold text-gray-900">€${product.price.toFixed(2)}</span>
+                            <button onclick="addToCart(${product.id})" class="text-sm text-coquette-600 font-medium hover:underline">Añadir</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- Lógica del Carrito ---
+        let cart = [];
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            
+            // Check if already in cart
+            const existingItem = cart.find(item => item.id === productId);
+            if(existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            
+            updateCartBadge();
+            showToast(`💖 ¡${product.name} añadido a tu bolsa!`);
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartBadge();
+            renderCart();
+            showToast(`Elemento eliminado de la bolsa.`);
+        }
+
+        function updateCartBadge() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const badges = [document.getElementById('cart-badge'), document.getElementById('mobile-cart-badge')];
+            
+            badges.forEach(badge => {
+                badge.innerText = totalItems;
+                if(totalItems > 0) {
+                    badge.classList.remove('opacity-0');
+                    badge.classList.add('opacity-100');
+                } else {
+                    badge.classList.remove('opacity-100');
+                    badge.classList.add('opacity-0');
+                }
+            });
+        }
+
+        function updateQuantity(productId, delta) {
+            const item = cart.find(i => i.id === productId);
+            if(item) {
+                item.quantity += delta;
+                if(item.quantity <= 0) {
+                    removeFromCart(productId);
+                } else {
+                    updateCartBadge();
+                    renderCart();
+                }
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-container');
+            
+            if(cart.length === 0) {
+                container.innerHTML = `
+                    <div class="p-12 text-center flex flex-col items-center justify-center">
+                        <div class="w-24 h-24 bg-coquette-50 rounded-full flex items-center justify-center mb-4">
+                            <i class="ph ph-shopping-bag-open text-4xl text-coquette-300"></i>
+                        </div>
+                        <h3 class="text-xl font-serif text-gray-700 mb-2">Tu bolsa está vacía</h3>
+                        <p class="text-gray-500 mb-6">Parece que aún no has encontrado tu prenda soñada.</p>
+                        <button onclick="navigateTo('shop')" class="bg-coquette-500 text-white px-8 py-3 rounded-full hover:bg-coquette-600 transition-colors shadow-md">
+                            Ir al Catálogo
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let cartHTML = `<div class="divide-y divide-coquette-100">`;
+            let subtotal = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                cartHTML += `
+                    <div class="p-6 flex flex-col sm:flex-row items-center gap-6">
+                        <img src="${item.image}" alt="${item.name}" class="w-24 h-32 object-cover rounded-xl border border-coquette-50">
+                        <div class="flex-grow text-center sm:text-left">
+                            <h4 class="font-serif font-semibold text-lg text-gray-800">${item.name}</h4>
+                            <p class="text-coquette-500 font-bold">€${item.price.toFixed(2)}</p>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-gray-50 rounded-full px-3 py-1">
+                            <button onclick="updateQuantity(${item.id}, -1)" class="text-gray-500 hover:text-coquette-500 focus:outline-none"><i class="ph ph-minus"></i></button>
+                            <span class="w-6 text-center font-medium">${item.quantity}</span>
+                            <button onclick="updateQuantity(${item.id}, 1)" class="text-gray-500 hover:text-coquette-500 focus:outline-none"><i class="ph ph-plus"></i></button>
+                        </div>
+                        <div class="font-bold text-gray-800 w-24 text-right hidden sm:block">
+                            €${itemTotal.toFixed(2)}
+                        </div>
+                        <button onclick="removeFromCart(${item.id})" class="text-gray-400 hover:text-red-500 transition-colors p-2">
+                            <i class="ph ph-trash text-xl"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            const total = subtotal; // Aquí se podrían añadir impuestos o envío
+
+            cartHTML += `
+                </div>
+                <div class="bg-coquette-50 p-6 sm:p-8">
+                    <div class="flex justify-between text-gray-600 mb-2">
+                        <span>Subtotal</span>
+                        <span>€${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600 mb-4">
+                        <span>Envío</span>
+                        <span>¡Gratis!</span>
+                    </div>
+                    <div class="border-t border-coquette-200 pt-4 flex justify-between items-center mb-6">
+                        <span class="font-serif font-bold text-xl text-gray-800">Total</span>
+                        <span class="font-serif font-bold text-2xl text-coquette-600">€${total.toFixed(2)}</span>
+                    </div>
+                    <button onclick="checkout()" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-coquette-900 transition-colors shadow-lg flex items-center justify-center">
+                        Finalizar Compra <i class="ph ph-lock-key ml-2"></i>
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML = cartHTML;
+        }
+
+        function checkout() {
+            if(cart.length === 0) return;
+            // Simulamos compra
+            cart = [];
+            updateCartBadge();
+            renderCart();
+            showToast("✨ ¡Pedido realizado con éxito! Gracias por tu compra.");
+            setTimeout(() => navigateTo('home'), 3000);
+        }
+
+        // --- Utilidad: Toast Notification ---
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.className = 'show';
+            setTimeout(() => {
+                toast.className = toast.className.replace('show', '');
+            }, 3000);
+        }
+
+        // --- Utilidad: Formulario Contacto ---
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            showToast(`💌 Gracias ${name}, hemos recibido tu mensaje.`);
+            e.target.reset();
+        }
+
+        // --- Inicialización ---
+        window.onload = () => {
+            renderProducts();
+            // Asegurarnos que la home sea visible al inicio
+            navigateTo('home');
+        };
+    </script>
+</body>
+</html>
